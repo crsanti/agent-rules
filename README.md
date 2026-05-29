@@ -77,3 +77,4 @@ For each file in `blocks/`, read its frontmatter, then for a **markdown** target
 | Block file | Target | Format | What it does |
 |---|---|---|---|
 | `blocks/claude.search-tools.md` | `~/.claude/CLAUDE.md` | markdown | Prefer fff MCP tools for file/content search inside projects |
+| `blocks/claude.language-es-es.md` | `~/.claude/CLAUDE.md` | markdown | Always answer in peninsular Castilian Spanish (overrides persona language rule) |
