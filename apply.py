@@ -12,7 +12,10 @@ Determinism, per target format:
   - markdown: idempotent text op bounded by unique
     <!-- {marker} --> ... <!-- /{marker} --> delimiters. Repeatable; self-heals
     duplicate blocks; never touches gentle-ai marker blocks.
-  - json: not implemented yet (pluggable) -> reported as skipped, never guessed.
+  - json: idempotent remove/ensure op on a dotted-path array (e.g.
+    permissions.deny). Body is a JSON spec {"remove": [...], "ensure": [...]}.
+    Set-based, so re-running is a no-op once converged; only the target array
+    is touched, every other key is preserved verbatim.
 
 Safety: a backup is written under <rules-dir>/.backups/ before any change, and
 the run aborts if applying a block would reduce the number of gentle-ai markers.
@@ -21,6 +24,7 @@ the run aborts if applying a block would reduce the number of gentle-ai markers.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import sys
@@ -158,6 +162,62 @@ def _atomic_write(path: Path, text: str) -> None:
     tmp.replace(path)
 
 
+# --- json handler -----------------------------------------------------------
+
+def _navigate_to_list_parent(root: dict, dotted: str) -> tuple[dict, str]:
+    """Return (parent_dict, last_key) for a dotted path, creating intermediate
+    dicts as needed. The caller owns reading/writing the final key."""
+    keys = dotted.split(".")
+    node = root
+    for k in keys[:-1]:
+        child = node.get(k)
+        if not isinstance(child, dict):
+            child = {}
+            node[k] = child
+        node = child
+    return node, keys[-1]
+
+
+def apply_json(target: Path, body: str, json_path: str, dry_run: bool) -> dict:
+    """Idempotent remove/ensure on the array at <json_path> in a JSON file.
+
+    Body is a spec: {"remove": [...], "ensure": [...]}. Entries in `remove` are
+    dropped; entries in `ensure` are appended if absent (order preserved). Every
+    other key in the file is left untouched. Re-running converges to a fixed
+    point, so running it after each gentle-ai sync re-narrows the deny array."""
+    spec = json.loads(body) if body.strip() else {}
+    remove = spec.get("remove", [])
+    ensure = spec.get("ensure", [])
+
+    existed = target.exists()
+    original = target.read_text(encoding="utf-8") if existed else ""
+    data = json.loads(original) if original.strip() else {}
+    if not isinstance(data, dict):
+        raise RuntimeError(f"{target}: top-level JSON is not an object")
+
+    parent, key = _navigate_to_list_parent(data, json_path)
+    current = parent.get(key, [])
+    if not isinstance(current, list):
+        raise RuntimeError(f"{target}: {json_path} is not a JSON array")
+
+    remove_set = set(remove)
+    new_list = [x for x in current if x not in remove_set]
+    for item in ensure:
+        if item not in new_list:
+            new_list.append(item)
+    parent[key] = new_list
+
+    new_text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    if existed and new_text == original:
+        return {"target": str(target), "marker": json_path, "action": "unchanged"}
+    if not dry_run:
+        if existed:
+            _backup(target)
+        _atomic_write(target, new_text)
+    return {"target": str(target), "marker": json_path,
+            "action": "patched" + (" (dry-run)" if dry_run else "")}
+
+
 # --- dispatcher -------------------------------------------------------------
 
 def apply_block(block_file: Path, dry_run: bool) -> dict:
@@ -172,8 +232,10 @@ def apply_block(block_file: Path, dry_run: bool) -> dict:
             raise ValueError(f"{block_file.name}: markdown block needs 'marker'")
         return apply_markdown(target, body, marker, fm.get("placement", ""), dry_run)
     if fmt == "json":
-        return {"target": str(target), "marker": marker,
-                "action": "skipped (json handler not implemented yet)"}
+        json_path = fm.get("json_path")
+        if not json_path:
+            raise ValueError(f"{block_file.name}: json block needs 'json_path'")
+        return apply_json(target, body, json_path, dry_run)
     return {"target": str(target), "marker": marker,
             "action": f"skipped (unknown format {fmt!r})"}
 
