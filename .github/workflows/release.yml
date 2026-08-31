@@ -1,0 +1,37 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          cargo_version="$(grep -m1 '^version = ' Cargo.toml | sed -E 's/version = "(.*)"/\1/')"
+          if [ "$tag_version" != "$cargo_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME (version $tag_version) does not match Cargo.toml version $cargo_version"
+            exit 1
+          fi
+          echo "tag $GITHUB_REF_NAME matches Cargo.toml version $cargo_version"
+
+      - name: Build (docker compose)
+        run: docker compose run --rm build
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/agent-rules-* \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes

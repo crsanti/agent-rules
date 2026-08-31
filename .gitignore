@@ -1,9 +1,11 @@
-# Local backups written by apply.py before each change
+# Local backups written by the applier binary before each change
 .backups/
-
-# Python bytecode cache
-__pycache__/
-*.pyc
 
 # Atomic-write temp files
 *.tmp
+
+# Cross-compiled binaries -- see README.md
+dist/
+
+# Local cargo build artifacts
+target/

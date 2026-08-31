@@ -1,0 +1,20 @@
+services:
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # The whole repo root -- Cargo.toml, src/, build.rs, blocks/ -- is
+      # bind-mounted read-only as /src. build.rs finds blocks/ as a plain
+      # sibling of Cargo.toml with no assembly step; build.sh (embedded in
+      # the image, run at `docker compose run` time) compiles straight
+      # from this mount. CARGO_TARGET_DIR points at the cargo-target-cache
+      # volume below, since /src itself is read-only. See README.md.
+      - .:/src:ro
+      - ./dist:/dist
+      - cargo-registry-cache:/root/.cargo/registry
+      - cargo-target-cache:/cargo-target
+
+volumes:
+  cargo-registry-cache:
+  cargo-target-cache:
