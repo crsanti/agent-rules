@@ -8,6 +8,7 @@ mod io_util;
 mod jsonhandler;
 mod markdown;
 mod pathresolve;
+mod upgrade;
 
 use std::collections::HashMap;
 use std::process::ExitCode;
@@ -29,6 +30,7 @@ pub struct Res {
 enum Command {
     Apply { dry_run: bool },
     List,
+    Upgrade,
     Version,
     Help,
 }
@@ -85,6 +87,7 @@ fn parse(args: &[String]) -> Result<Command, ParseError> {
     match first.as_str() {
         "apply" => parse_apply(rest),
         "list" => parse_no_args("list", rest).map(|()| Command::List),
+        "upgrade" => parse_no_args("upgrade", rest).map(|()| Command::Upgrade),
         "version" | "-v" | "--version" => parse_no_args("version", rest).map(|()| Command::Version),
         "help" | "-h" | "--help" => parse_no_args("help", rest).map(|()| Command::Help),
         other => Err(ParseError::UnknownCommand(other.to_string())),
@@ -136,6 +139,7 @@ fn run(args: &[String]) -> i32 {
     match parse(args) {
         Ok(Command::Apply { dry_run }) => run_apply(dry_run),
         Ok(Command::List) => run_list(),
+        Ok(Command::Upgrade) => upgrade::run_upgrade(),
         Ok(Command::Version) => {
             println!("agent-rules {VERSION}");
             0
@@ -161,12 +165,14 @@ agent-rules -- apply embedded ~/.agent-rules blocks
 Usage:
   agent-rules apply [--dry-run]
   agent-rules list
+  agent-rules upgrade
   agent-rules version
   agent-rules help
 
 Commands:
   apply     apply embedded blocks to their targets
   list      list embedded blocks (name, target, format)
+  upgrade   replace this binary with the latest GitHub release
   version   print the version string (also: -v, --version)
   help      show this help (also: -h, --help)
 
@@ -378,6 +384,30 @@ mod tests {
                 command: "apply",
                 arg: "extra".to_string(),
             })
+        );
+    }
+
+    #[test]
+    fn upgrade_subcommand() {
+        assert_eq!(parse(&args(&["upgrade"])), Ok(Command::Upgrade));
+    }
+
+    #[test]
+    fn stray_argument_after_upgrade_is_rejected() {
+        assert_eq!(
+            parse(&args(&["upgrade", "extra"])),
+            Err(ParseError::UnexpectedArgument {
+                command: "upgrade",
+                arg: "extra".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn dry_run_under_upgrade_is_rejected() {
+        assert_eq!(
+            parse(&args(&["upgrade", "--dry-run"])),
+            Err(ParseError::DryRunNotUnderApply)
         );
     }
 

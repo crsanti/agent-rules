@@ -9,9 +9,10 @@ each agent's own config — is replaceable.**
 
 ## Quick start
 
-1. Get the `agent-rules` binary for your platform — a
-   [release download](#releases), or build it yourself with `mise run build`
-   (see [Local development](#local-development)).
+1. Install: `curl -fsSL https://raw.githubusercontent.com/crsanti/agent-rules/main/install.sh | sh`
+   (macOS/Linux) or `irm https://raw.githubusercontent.com/crsanti/agent-rules/main/install.ps1 | iex`
+   (Windows PowerShell) — see [Install](#install) for options and manual
+   downloads.
 2. Preview: `agent-rules apply --dry-run` — shows what would change, writes
    nothing.
 3. Apply: `agent-rules apply` — writes the blocks, backing up anything it
@@ -19,6 +20,48 @@ each agent's own config — is replaceable.**
 
 Running it again is always safe: `agent-rules apply` is idempotent. A second
 run reports every block unchanged.
+
+## Install
+
+**macOS / Linux:**
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/crsanti/agent-rules/main/install.sh | sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/crsanti/agent-rules/main/install.ps1 | iex
+```
+
+From `cmd.exe` or a shortcut, wrap it: `powershell -ExecutionPolicy Bypass -c
+"irm https://raw.githubusercontent.com/crsanti/agent-rules/main/install.ps1 | iex"`.
+Git Bash and WSL both use the `install.sh` one-liner above — WSL is a real
+Linux userspace, and Git Bash provides the POSIX shell `install.sh` needs.
+
+Both scripts install to `~/.local/bin` (`%USERPROFILE%\.local\bin` on
+Windows). If that directory isn't already on `PATH`, the two installers
+diverge: `install.sh` only *prints* the line to add to your shell config —
+it never edits any file — while `install.ps1` *adds* the directory to your
+Windows user `PATH` directly (through the registry, no config file
+touched) and tells you when it does; other open shells still need
+restarting to pick it up. Override where or which version they install
+with:
+
+| Variable | Effect |
+|---|---|
+| `AGENT_RULES_INSTALL_DIR` | Install to a different directory |
+| `AGENT_RULES_VERSION` | Install a specific tag instead of the latest, with or without the `v` (e.g. `v0.1.0`, `0.1.0`) |
+
+Already installed? `agent-rules upgrade` replaces the running binary with the
+latest release build in place (requires `curl` on `PATH`).
+
+**Manual install:** download a binary directly from the
+[releases page](https://github.com/crsanti/agent-rules/releases). Prebuilt
+binaries cover `darwin-amd64`, `darwin-arm64`, `linux-amd64`, and
+`windows-amd64` — arm64 Linux and arm64 Windows have no prebuilt binary and
+need [building from source](#local-development).
 
 ## How it works
 
@@ -71,6 +114,7 @@ alongside it, nothing to install at runtime.
 | `agent-rules apply` | Apply all blocks |
 | `agent-rules apply --dry-run` | Show what would change; write nothing |
 | `agent-rules list` | List embedded blocks (name, target, format) |
+| `agent-rules upgrade` | Replace this binary with the latest GitHub release |
 | `agent-rules version` | Print the version string (also `-v`, `--version`) |
 | `agent-rules help` | Show usage (also `-h`, `--help`) |
 
@@ -129,8 +173,8 @@ git push origin v0.1.0
 
 `.github/workflows/release.yml` then: checks that the tag's version matches
 `Cargo.toml`, runs the same `docker compose run --rm build`, and publishes
-`dist/agent-rules-*` on the GitHub Release for that tag with auto-generated
-notes.
+`dist/agent-rules-*` plus `install.sh` and `install.ps1` on the GitHub
+Release for that tag with auto-generated notes.
 
 > **Gotcha:** some machines have a global `~/.gitignore` that excludes
 > `mise.toml` (a common pattern, since it can hold machine-specific
