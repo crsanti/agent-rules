@@ -12,13 +12,13 @@ each agent's own config — is replaceable.**
 1. Get the `agent-rules` binary for your platform — a
    [release download](#releases), or build it yourself with `mise run build`
    (see [Local development](#local-development)).
-2. Preview: `agent-rules --dry-run` — shows what would change, writes
+2. Preview: `agent-rules apply --dry-run` — shows what would change, writes
    nothing.
-3. Apply: `agent-rules` — writes the blocks, backing up anything it
+3. Apply: `agent-rules apply` — writes the blocks, backing up anything it
    overwrites first (see [Backups](#backups)).
 
-Running it again is always safe: `agent-rules` is idempotent. A second run
-reports every block unchanged.
+Running it again is always safe: `agent-rules apply` is idempotent. A second
+run reports every block unchanged.
 
 ## How it works
 
@@ -68,11 +68,15 @@ alongside it, nothing to install at runtime.
 
 | Command | Does |
 |---|---|
-| `agent-rules` / `agent-rules apply` | Apply all blocks (default action) |
-| `agent-rules --dry-run` | Show what would change; write nothing |
-| `agent-rules --list` | List embedded blocks (name, target, format) |
-| `agent-rules --version` | Print the version string |
-| `agent-rules --help` | Show usage |
+| `agent-rules apply` | Apply all blocks |
+| `agent-rules apply --dry-run` | Show what would change; write nothing |
+| `agent-rules list` | List embedded blocks (name, target, format) |
+| `agent-rules version` | Print the version string (also `-v`, `--version`) |
+| `agent-rules help` | Show usage (also `-h`, `--help`) |
+
+Bare `agent-rules` (no subcommand) takes no action — it prints usage and
+exits with an error instead, so a tool that mutates dotfiles never writes
+by accident.
 
 ### Backups
 

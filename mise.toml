@@ -3,4 +3,4 @@ rust = "stable"
 
 [tasks.build]
 description = "Cross-compile agent-rules (linux/darwin/windows, via Docker) into ./dist"
-run = "docker compose run --rm build"
+run = "docker compose run --build --rm build"

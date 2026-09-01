@@ -3,7 +3,7 @@
 # (for scaffolding new projects/features) while real secrets remain blocked.
 # Accessible ON PURPOSE (NOT denied below): .env.template, .env.example.
 # gentle-ai install/sync REPLACES the permissions.deny array on every run, so
-# re-run the `agent-rules` binary after each sync to re-apply this.
+# re-run `agent-rules apply` after each sync to re-apply this.
 # This is an explicit denylist: only the variants in `ensure` are blocked; add
 # any new secret variant there yourself. Anything omitted stays editable.
 target: ~/.claude/settings.json

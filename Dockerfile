@@ -46,7 +46,7 @@ cd "$SRC"
 echo "== toolchain =="
 cargo --version
 rustc --version
-cargo zigbuild --version || true
+cargo-zigbuild --version || true
 echo
 
 : > /tmp/timings.txt
