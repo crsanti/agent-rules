@@ -100,6 +100,7 @@ delimiters.
 |---|---|---|---|
 | `blocks/claude.search-tools.md` | `~/.claude/CLAUDE.md` | markdown | Prefer fff MCP tools for file/content search inside projects |
 | `blocks/claude.language-es-es.md` | `~/.claude/CLAUDE.md` | markdown | Always answer in peninsular Castilian Spanish (overrides persona language rule) |
+| `blocks/claude.odd-feature-doc.md` | `~/.claude/CLAUDE.md` | markdown | Keep the ODD log in its own file outside the Engram mirror; add Open Items and per-feature finding IDs (overrides gentle-ai ODD feature-document rules) |
 | `blocks/claude.settings-env-deny.md` | `~/.claude/settings.json` | json | Narrow gentle-ai's broad `.env.*` deny to specific variants |
 
 ## The `agent-rules` binary
