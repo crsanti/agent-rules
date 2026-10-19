@@ -9,6 +9,11 @@ placement: after-last-gentle-ai-marker
 
 **This rule OVERRIDES the ODD rules under `## Implementation Routing`, and the
 shared contracts in `~/.claude/skills/_shared/`, that say:**
+> "a two- or three-line header"
+>
+> "a header of two or three lines with the objective, branch, delivery
+> strategy, and test runner"
+>
 > "`## Log` last, where `L1` is the user's original request verbatim and later
 > user corrections, evidence, and decisions are appended."
 >
@@ -29,8 +34,9 @@ conflicts with this for a feature document, **THIS rule wins.**
 ### Files
 
 - `odd/tasks/<feature-name>.md` — the feature document, in this order: header,
-  `## Specs`, `## Tasks`, `## Open Items`. No `## Log`. The header adds a
-  `Log:` line with the log file's path.
+  `## Specs`, `## Tasks`, `## Open Items`. No `## Log`. Keep the header short:
+  ODD's fields, plus a `Log:` line with the log file's path and a `Next:` line
+  with the next step, updated after each task.
 - `odd/tasks/<feature-name>-log.md` — the log: `L1` (the user's original
   request, verbatim) and every later entry, under ODD's `## Log` content rules.
   It is a log, not a feature document. It stays in the repository with the
@@ -40,8 +46,8 @@ conflicts with this for a feature document, **THIS rule wins.**
   mirror is incomplete: tell the user and mark it pending, as ODD does when
   Engram is unavailable.
 - Workers read the whole feature document, and the log only when they need its
-  history. On resume, also read the end of the log: it holds the latest
-  progress and next step.
+  history. On resume, `Next:` says where to continue, and the end of the log
+  has the details.
 - A document that still has an inline `## Log`: the next time you update it,
   move the log to the log file and give its open items an `F#` (below).
 
@@ -57,10 +63,15 @@ AND its own Engram memory, so none lives only in the log or only in Engram.
   fact about a tool, library, or environment that would save time in later
   work. Name the version: "Bun 1.4.2: `Bun.serve` ignores `HOST`". A test
   result is not a discovery.
-- One memory per decision or discovery; never share a `topic_key`. Search
-  first: if it already exists, update it under the same `topic_key`, also when
-  a decision changes (Engram keeps the previous version). Name the feature and
-  `L#` it came from, and the discovery a decision relies on.
+- One memory per decision or discovery; never share a `topic_key`. Use these
+  keys for every decision or discovery saved during feature work, proactive
+  saves included. Search first: if one already exists, even under another
+  key, update it instead of adding a second, also when a decision changes:
+  `mem_update` with its ID, setting the `topic_key` and `type` above. If that
+  memory holds more than this decision or discovery, save a new one instead
+  of re-keying it. Earlier versions stay readable with `mem_get_observation`
+  and `include_history: true`. Name the feature and `L#` it came from, and the
+  discovery a decision relies on.
 - NOT decisions: a verdict that only says to fix it or add the test (its task
   and commit are the record), and delivery choices (they stay in the header).
 
