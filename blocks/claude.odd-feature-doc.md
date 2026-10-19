@@ -69,16 +69,20 @@ AND its own Engram memory, so none lives only in the log or only in Engram.
 - One memory per decision or discovery; never share a `topic_key`. Use these
   keys for every decision or discovery you save during feature work,
   proactive saves included. Workers do not save them: they report them to
-  the parent, which saves them. Name the feature and `L#` each one came from,
-  and the discovery a decision relies on.
+  the parent, which saves them. Say so in every worker handoff, next to the
+  Key Learnings instruction, because a worker with Engram tools is also told
+  to save on its own. Name the feature and `L#` each one came from, and the
+  discovery a decision relies on.
 - Search first. If one already exists under these keys, update it, also when
-  a decision changes, and leave any other copy as it is. If it only exists
-  under another key, update that one instead of adding a second:
-  `mem_update` with its ID, setting the `topic_key` and `type` above, unless
-  it holds more than this decision or discovery; then save a new one. Key
-  Learnings are captured automatically, without a key: when the search finds
-  one, treat it as a memory under another key. Earlier versions stay readable
-  with `mem_get_observation` and `include_history: true`.
+  a decision changes. Do not re-key any other copy; if such a copy holds only
+  this decision or discovery, prefix its title with
+  `Superseded by <topic_key>: ` so later searches do not read it as current.
+  If it only exists under another key, update that one instead of adding a
+  second: `mem_update` with its ID, setting the `topic_key` and `type` above,
+  unless it holds more than this decision or discovery; then save a new one.
+  Key Learnings are captured automatically, without a key: when the search
+  finds one, treat it as a memory under another key. Earlier versions stay
+  readable with `mem_get_observation` and `include_history: true`.
 - NOT decisions: a verdict that only says to fix it or add the test (its task
   and commit are the record), and delivery choices (they stay in the header).
 
