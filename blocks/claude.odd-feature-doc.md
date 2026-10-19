@@ -25,6 +25,9 @@ shared contracts in `~/.claude/skills/_shared/`, that say:**
 > "The mirror contains the full document and repository-relative locator, not
 > a summary."
 >
+> "Significant verified project discoveries can be saved with `mem_save`
+> under the resolved project."
+>
 > "tell workers to read until `## Log`"
 
 Everything else in ODD stays in force. This rule changes where the log lives,
@@ -64,14 +67,18 @@ AND its own Engram memory, so none lives only in the log or only in Engram.
   work. Name the version: "Bun 1.4.2: `Bun.serve` ignores `HOST`". A test
   result is not a discovery.
 - One memory per decision or discovery; never share a `topic_key`. Use these
-  keys for every decision or discovery saved during feature work, proactive
-  saves included. Search first: if one already exists, even under another
-  key, update it instead of adding a second, also when a decision changes:
-  `mem_update` with its ID, setting the `topic_key` and `type` above. If that
-  memory holds more than this decision or discovery, save a new one instead
-  of re-keying it. Earlier versions stay readable with `mem_get_observation`
-  and `include_history: true`. Name the feature and `L#` it came from, and the
-  discovery a decision relies on.
+  keys for every decision or discovery you save during feature work,
+  proactive saves included. Workers do not save them: they report them to
+  the parent, which saves them. Name the feature and `L#` each one came from,
+  and the discovery a decision relies on.
+- Search first. If one already exists under these keys, update it, also when
+  a decision changes, and leave any other copy as it is. If it only exists
+  under another key, update that one instead of adding a second:
+  `mem_update` with its ID, setting the `topic_key` and `type` above, unless
+  it holds more than this decision or discovery; then save a new one. Key
+  Learnings are captured automatically, without a key: when the search finds
+  one, treat it as a memory under another key. Earlier versions stay readable
+  with `mem_get_observation` and `include_history: true`.
 - NOT decisions: a verdict that only says to fix it or add the test (its task
   and commit are the record), and delivery choices (they stay in the header).
 
